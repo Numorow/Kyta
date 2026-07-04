@@ -29,7 +29,10 @@ function PasswordAuthForm() {
     const { error, data } =
       mode === 'sign-in'
         ? await supabase.auth.signInWithPassword(values)
-        : await supabase.auth.signUp(values)
+        : await supabase.auth.signUp({
+            ...values,
+            options: { emailRedirectTo: window.location.origin },
+          })
 
     if (error) {
       toast.error(error.message)

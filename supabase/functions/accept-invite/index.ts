@@ -7,25 +7,37 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+// Edge Functions don't get browser CORS handling for free — without an
+// explicit OPTIONS response the preflight fails and the browser never
+// sends the real POST at all.
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+function json(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return json({ error: 'Method not allowed' }, 405)
   }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Missing Authorization header' }, 401)
   }
 
   const { token } = await req.json().catch(() => ({ token: null }))
   if (!token || typeof token !== 'string') {
-    return new Response(JSON.stringify({ error: 'Missing invite token' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Missing invite token' }, 400)
   }
 
   // Identify the caller from their own JWT (anon key + their Authorization header).
@@ -37,10 +49,7 @@ Deno.serve(async (req) => {
     error: userError,
   } = await callerClient.auth.getUser()
   if (userError || !user) {
-    return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Not authenticated' }, 401)
   }
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
@@ -52,28 +61,16 @@ Deno.serve(async (req) => {
     .maybeSingle()
 
   if (inviteError || !invite) {
-    return new Response(JSON.stringify({ error: 'Invite not found' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Invite not found' }, 404)
   }
   if (invite.accepted_at) {
-    return new Response(JSON.stringify({ error: 'Invite already accepted' }), {
-      status: 409,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Invite already accepted' }, 409)
   }
   if (new Date(invite.expires_at).getTime() < Date.now()) {
-    return new Response(JSON.stringify({ error: 'Invite expired' }), {
-      status: 410,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: 'Invite expired' }, 410)
   }
   if (invite.email.toLowerCase() !== user.email?.toLowerCase()) {
-    return new Response(
-      JSON.stringify({ error: 'This invite was sent to a different email address' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } },
-    )
+    return json({ error: 'This invite was sent to a different email address' }, 403)
   }
 
   const { error: memberError } = await admin.from('household_members').insert({
@@ -84,10 +81,7 @@ Deno.serve(async (req) => {
   if (memberError) {
     // Most likely already a member of this household (primary key conflict) — treat as success.
     if (memberError.code !== '23505') {
-      return new Response(JSON.stringify({ error: memberError.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: memberError.message }, 500)
     }
   }
 
@@ -96,8 +90,5 @@ Deno.serve(async (req) => {
     .update({ accepted_at: new Date().toISOString() })
     .eq('id', invite.id)
 
-  return new Response(JSON.stringify({ household_id: invite.household_id }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  })
+  return json({ household_id: invite.household_id }, 200)
 })
