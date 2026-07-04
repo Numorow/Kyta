@@ -1,14 +1,20 @@
-import { Button } from '@/components/ui/button'
+import { RouterProvider } from 'react-router-dom'
+import { QueryProvider } from '@/app/QueryProvider'
+import { ThemeProvider } from '@/app/ThemeProvider'
+import { router } from '@/app/router'
+import { Toaster } from '@/components/ui/sonner'
+import { AuthProvider } from '@/features/auth/AuthProvider'
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4 bg-background text-foreground">
-      <h1 className="text-2xl font-semibold">Household Finance</h1>
-      <p className="text-muted-foreground">
-        Foundations (routing, auth, theme) land in Milestone 1.
-      </p>
-      <Button>shadcn/ui is wired up</Button>
-    </div>
+    <ThemeProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </AuthProvider>
+      </QueryProvider>
+    </ThemeProvider>
   )
 }
 
