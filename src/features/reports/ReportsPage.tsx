@@ -18,6 +18,7 @@ import { formatMoney } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { exportCsv } from '@/lib/exportCsv'
 import { useReports } from '@/features/reports/useReports'
+import { InsightsSection } from '@/features/reports/InsightsSection'
 
 const CHART_COLORS = [
   'var(--color-chart-1)',
@@ -234,6 +235,9 @@ export function ReportsPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {/* Insights (extends Reports) */}
+          {data && <InsightsSection report={data} months={months} />}
         </>
       )}
     </div>

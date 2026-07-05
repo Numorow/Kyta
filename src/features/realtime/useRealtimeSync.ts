@@ -22,6 +22,7 @@ export function useRealtimeSync() {
         ['net-worth-history', householdId],
         ['budgets', householdId],
         ['recurring', householdId],
+        ['goals', householdId],
       ]) {
         queryClient.invalidateQueries({ queryKey: key })
       }
@@ -33,6 +34,8 @@ export function useRealtimeSync() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter }, invalidateAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts', filter }, invalidateAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'budgets', filter }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'goals', filter }, invalidateAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'goal_contributions', filter }, invalidateAll)
       .subscribe()
 
     return () => {

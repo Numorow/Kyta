@@ -5,11 +5,8 @@ import { useHouseholdId } from '@/features/household/HouseholdContext'
 import { accountsKey } from '@/features/accounts/useAccounts'
 import { supabase } from '@/lib/supabase'
 import { todayIso } from '@/lib/money'
-import {
-  expandOccurrences,
-  nextOccurrenceAfter,
-  type RecurrenceRule,
-} from '@/lib/recurrence'
+import { nextOccurrenceAfter, type RecurrenceRule } from '@/lib/recurrence'
+import { buildForecast, type ForecastRule } from '@/lib/forecast'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database'
 
 export type RecurringRule = Tables<'recurring_rules'>
@@ -34,7 +31,7 @@ export function useRecurringRules() {
   })
 }
 
-function ruleShape(r: RecurringRule): RecurrenceRule {
+export function ruleShape(r: RecurringRule): RecurrenceRule {
   return {
     frequency: r.frequency as RecurrenceRule['frequency'],
     interval_count: r.interval_count,
@@ -147,29 +144,44 @@ export function useTimeline(days: number) {
       if (error) throw error
       const paidKeys = new Set((posted ?? []).map((p) => `${p.recurring_rule_id}|${p.txn_date}`))
 
-      const flat = (rules ?? []).flatMap((rule) =>
-        expandOccurrences(ruleShape(rule), from, to).map((occ) => {
-          const signedAmount = rule.type === 'expense' ? -rule.amount : rule.amount
-          return {
-            ruleId: rule.id,
-            name: rule.name,
-            type: rule.type as 'income' | 'expense',
-            amount: rule.amount,
-            signedAmount,
-            date: occ.date,
-            paid: paidKeys.has(`${rule.id}|${occ.date}`),
-          }
-        }),
-      )
-      flat.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-
-      let balance = startingBalance
-      return flat.map((o) => {
-        // Unpaid occurrences move the projected balance; paid ones already hit
-        // the real balance, so don't double-count them.
-        if (!o.paid) balance += o.signedAmount
-        return { ...o, runningBalance: balance }
+      // Project via the shared forecast engine (same math as the /forecast
+      // page), then flatten its daily series back into the per-occurrence shape
+      // this timeline exposes, carrying a running balance after each occurrence.
+      const forecastRules: ForecastRule[] = (rules ?? []).map((rule) => ({
+        ...ruleShape(rule),
+        id: rule.id,
+        name: rule.name,
+        type: rule.type as 'income' | 'expense',
+        amount: rule.amount,
+      }))
+      const forecast = buildForecast({
+        startingBalance,
+        asOf: from,
+        days,
+        rules: forecastRules,
+        paidKeys,
       })
+
+      const occurrences: Occurrence[] = []
+      for (const day of forecast.series) {
+        let running = day.opening
+        for (const ev of day.events) {
+          // Unpaid occurrences move the projected balance; paid ones already hit
+          // the real balance, so don't double-count them.
+          if (!ev.paid) running += ev.signedAmount
+          occurrences.push({
+            ruleId: ev.ruleId,
+            name: ev.name,
+            type: ev.type,
+            amount: Math.abs(ev.signedAmount),
+            signedAmount: ev.signedAmount,
+            date: day.date,
+            paid: ev.paid,
+            runningBalance: running,
+          })
+        }
+      }
+      return occurrences
     },
   })
 }
@@ -205,6 +217,7 @@ export function useMarkOccurrencePaid() {
       queryClient.invalidateQueries({ queryKey: ['transactions', householdId] })
       queryClient.invalidateQueries({ queryKey: accountsKey(householdId) })
       queryClient.invalidateQueries({ queryKey: ['net-worth', householdId] })
+      queryClient.invalidateQueries({ queryKey: ['forecast', householdId] })
     },
   })
 }

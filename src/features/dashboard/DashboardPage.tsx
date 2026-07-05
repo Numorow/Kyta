@@ -14,6 +14,7 @@ import { useTransactions } from '@/features/transactions/useTransactions'
 import { useCategoryMap } from '@/features/categories/useCategories'
 import { TransactionFormDialog } from '@/features/transactions/TransactionFormDialog'
 import { useCashflowSummary, type CashflowPeriod } from '@/features/dashboard/useDashboard'
+import { CashflowForecastCard } from '@/features/forecast/CashflowForecastCard'
 
 function SectionCard({
   title,
@@ -266,6 +267,7 @@ export function DashboardPage() {
         <CashflowCard />
         <BudgetHealthCard />
         <UpcomingBillsCard />
+        <CashflowForecastCard />
         <RecentTransactionsCard />
       </div>
     </div>

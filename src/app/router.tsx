@@ -8,8 +8,10 @@ import { AccountsPage } from '@/features/accounts/AccountsPage'
 import { TransactionsPage } from '@/features/transactions/TransactionsPage'
 import { ImportPage } from '@/features/import/ImportPage'
 import { BudgetsPage } from '@/features/budgets/BudgetsPage'
+import { GoalsPage } from '@/features/goals/GoalsPage'
 import { CategoriesPage } from '@/features/categories/CategoriesPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
+import { ForecastPage } from '@/features/forecast/ForecastPage'
 import { NetWorthPage } from '@/features/networth/NetWorthPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
@@ -30,8 +32,10 @@ export const router = createBrowserRouter([
           { path: '/income', element: <PayslipsPage /> },
           { path: '/import', element: <ImportPage /> },
           { path: '/budgets', element: <BudgetsPage /> },
+          { path: '/goals', element: <GoalsPage /> },
           { path: '/categories', element: <CategoriesPage /> },
           { path: '/bills', element: <RecurringPage /> },
+          { path: '/forecast', element: <ForecastPage /> },
           { path: '/net-worth', element: <NetWorthPage /> },
           { path: '/reports', element: <ReportsPage /> },
           { path: '/settings', element: <SettingsPage /> },

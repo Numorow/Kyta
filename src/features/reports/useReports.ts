@@ -6,12 +6,14 @@ import { todayIso } from '@/lib/money'
 
 export type CategorySpend = { category: string; spend: number }
 export type MonthlyCashflow = { month: string; income: number; expense: number; net: number }
+export type CategoryMonthSpend = { category: string; month: string; spend: number }
 
 export type ReportData = {
   from: string
   to: string
   spendByCategory: CategorySpend[]
   monthly: MonthlyCashflow[]
+  byCategoryMonth: CategoryMonthSpend[] // per-(category × month) expense, for insights
 }
 
 /**
@@ -47,6 +49,8 @@ export function useReports(months: number) {
       const spendMap = new Map<string, number>()
       // Income vs expense per calendar month.
       const monthMap = new Map<string, { income: number; expense: number }>()
+      // Per-(category × month) expense for insights (MoM trend, top movers).
+      const catMonthMap = new Map<string, number>() // `${category}|${month}` → spend
 
       for (const r of rows) {
         const amt = Number(r.amount)
@@ -58,6 +62,8 @@ export function useReports(months: number) {
           bucket.expense += -amt
           const name = r.categories?.name ?? 'Uncategorised'
           spendMap.set(name, (spendMap.get(name) ?? 0) + -amt)
+          const key = `${name}|${month}`
+          catMonthMap.set(key, (catMonthMap.get(key) ?? 0) + -amt)
         }
         monthMap.set(month, bucket)
       }
@@ -71,7 +77,13 @@ export function useReports(months: number) {
         .map(([month, v]) => ({ month, income: v.income, expense: v.expense, net: v.income - v.expense }))
         .sort((a, b) => (a.month < b.month ? -1 : 1))
 
-      return { from, to, spendByCategory, monthly }
+      // Split on the LAST '|' so category names containing '|' survive.
+      const byCategoryMonth = [...catMonthMap.entries()].map(([key, spend]) => {
+        const sep = key.lastIndexOf('|')
+        return { category: key.slice(0, sep), month: key.slice(sep + 1), spend }
+      })
+
+      return { from, to, spendByCategory, monthly, byCategoryMonth }
     },
   })
 }

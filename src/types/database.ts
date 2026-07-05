@@ -219,6 +219,112 @@ export type Database = {
           },
         ]
       }
+      // NOTE: goals, goal_contributions and the goal_progress function below
+      // were hand-added for migrations 0018/0019. Replace this whole file with a
+      // real `supabase gen types typescript` once those are applied to the
+      // finance project (ref dzxcrkoseqpjhwmthgyk).
+      goal_contributions: {
+        Row: {
+          amount: number
+          contrib_date: string
+          created_at: string
+          created_by: string | null
+          goal_id: string
+          household_id: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          amount: number
+          contrib_date?: string
+          created_at?: string
+          created_by?: string | null
+          goal_id: string
+          household_id: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          amount?: number
+          contrib_date?: string
+          created_at?: string
+          created_by?: string | null
+          goal_id?: string
+          household_id?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_contributions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_contributions_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          color: string | null
+          created_at: string
+          household_id: string
+          id: string
+          is_active: boolean
+          linked_account_id: string | null
+          name: string
+          sort_order: number
+          target_amount: number
+          target_date: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          household_id: string
+          id?: string
+          is_active?: boolean
+          linked_account_id?: string | null
+          name: string
+          sort_order?: number
+          target_amount: number
+          target_date?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          is_active?: boolean
+          linked_account_id?: string | null
+          name?: string
+          sort_order?: number
+          target_amount?: number
+          target_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_linked_account_id_fkey"
+            columns: ["linked_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_invites: {
         Row: {
           accepted_at: string | null
@@ -706,6 +812,13 @@ export type Database = {
         }[]
       }
       create_household: { Args: { household_name: string }; Returns: string }
+      goal_progress: {
+        Args: { p_household: string }
+        Returns: {
+          goal_id: string
+          saved: number
+        }[]
+      }
       household_members_detail: {
         Args: { hid: string }
         Returns: {
