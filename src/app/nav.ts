@@ -5,6 +5,7 @@ import {
   PiggyBank,
   CalendarClock,
   TrendingUp,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -22,4 +23,5 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/budgets', label: 'Budgets', icon: PiggyBank },
   { to: '/bills', label: 'Bills', icon: CalendarClock },
   { to: '/net-worth', label: 'Net worth', icon: TrendingUp },
+  { to: '/reports', label: 'Reports', icon: BarChart3 },
 ]

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { HouseholdGate, useHousehold } from '@/features/household/HouseholdContext'
+import { useRealtimeSync } from '@/features/realtime/useRealtimeSync'
 
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -36,6 +37,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 
 function Chrome() {
   const { household } = useHousehold()
+  useRealtimeSync()
 
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
