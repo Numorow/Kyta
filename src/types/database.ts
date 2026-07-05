@@ -221,6 +221,73 @@ export type Database = {
         }
         Relationships: []
       }
+      import_batches: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          created_by: string | null
+          filename: string | null
+          household_id: string
+          id: string
+          row_count: number
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          filename?: string | null
+          household_id: string
+          id?: string
+          row_count?: number
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          filename?: string | null
+          household_id?: string
+          id?: string
+          row_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_mappings: {
+        Row: {
+          account_id: string
+          household_id: string
+          mapping: Json
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          household_id: string
+          mapping: Json
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          household_id?: string
+          mapping?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_mappings_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string
@@ -231,6 +298,7 @@ export type Database = {
           description: string | null
           household_id: string
           id: string
+          import_batch_id: string | null
           merchant: string | null
           notes: string | null
           recurring_rule_id: string | null
@@ -248,6 +316,7 @@ export type Database = {
           description?: string | null
           household_id: string
           id?: string
+          import_batch_id?: string | null
           merchant?: string | null
           notes?: string | null
           recurring_rule_id?: string | null
@@ -265,6 +334,7 @@ export type Database = {
           description?: string | null
           household_id?: string
           id?: string
+          import_batch_id?: string | null
           merchant?: string | null
           notes?: string | null
           recurring_rule_id?: string | null
@@ -300,6 +370,13 @@ export type Database = {
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
             referencedColumns: ["id"]
           },
         ]

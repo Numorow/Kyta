@@ -6,6 +6,7 @@ import { AcceptInvitePage } from '@/features/household/AcceptInvitePage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { AccountsPage } from '@/features/accounts/AccountsPage'
 import { TransactionsPage } from '@/features/transactions/TransactionsPage'
+import { ImportPage } from '@/features/import/ImportPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
           { path: '/', element: <DashboardPage /> },
           { path: '/accounts', element: <AccountsPage /> },
           { path: '/transactions', element: <TransactionsPage /> },
+          { path: '/import', element: <ImportPage /> },
         ],
       },
     ],

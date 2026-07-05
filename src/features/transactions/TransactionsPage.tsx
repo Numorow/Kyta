@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeftRight, Plus, Search, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowLeftRight, Plus, Search, Trash2, Upload } from 'lucide-react'
 import type { RowSelectionState } from '@tanstack/react-table'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -88,6 +89,12 @@ export function TransactionsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Transactions</h1>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/import">
+              <Upload className="size-4" />
+              Import
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => setAddingTransfer(true)}>
             <ArrowLeftRight className="size-4" />
             Transfer
