@@ -380,6 +380,85 @@ export type Database = {
           },
         ]
       }
+      payslips: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deductions: number
+          deposit_account_id: string | null
+          employer: string | null
+          gross: number
+          household_id: string
+          id: string
+          income_transaction_id: string | null
+          member_label: string | null
+          net: number
+          pay_date: string
+          super: number
+          super_account_id: string | null
+          super_transaction_id: string | null
+          tax: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deductions?: number
+          deposit_account_id?: string | null
+          employer?: string | null
+          gross: number
+          household_id: string
+          id?: string
+          income_transaction_id?: string | null
+          member_label?: string | null
+          net: number
+          pay_date: string
+          super?: number
+          super_account_id?: string | null
+          super_transaction_id?: string | null
+          tax?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deductions?: number
+          deposit_account_id?: string | null
+          employer?: string | null
+          gross?: number
+          household_id?: string
+          id?: string
+          income_transaction_id?: string | null
+          member_label?: string | null
+          net?: number
+          pay_date?: string
+          super?: number
+          super_account_id?: string | null
+          super_transaction_id?: string | null
+          tax?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslips_deposit_account_id_fkey"
+            columns: ["deposit_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_super_account_id_fkey"
+            columns: ["super_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_rules: {
         Row: {
           account_id: string | null

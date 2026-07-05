@@ -13,6 +13,7 @@ import { RecurringPage } from '@/features/recurring/RecurringPage'
 import { NetWorthPage } from '@/features/networth/NetWorthPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
+import { PayslipsPage } from '@/features/payslips/PayslipsPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
           { path: '/', element: <DashboardPage /> },
           { path: '/accounts', element: <AccountsPage /> },
           { path: '/transactions', element: <TransactionsPage /> },
+          { path: '/income', element: <PayslipsPage /> },
           { path: '/import', element: <ImportPage /> },
           { path: '/budgets', element: <BudgetsPage /> },
           { path: '/categories', element: <CategoriesPage /> },
