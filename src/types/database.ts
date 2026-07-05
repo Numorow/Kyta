@@ -73,6 +73,47 @@ export type Database = {
           },
         ]
       }
+      balance_snapshots: {
+        Row: {
+          breakdown: Json | null
+          created_at: string
+          household_id: string
+          id: string
+          net_worth: number
+          snapshot_date: string
+          total_assets: number
+          total_liabilities: number
+        }
+        Insert: {
+          breakdown?: Json | null
+          created_at?: string
+          household_id: string
+          id?: string
+          net_worth: number
+          snapshot_date: string
+          total_assets: number
+          total_liabilities: number
+        }
+        Update: {
+          breakdown?: Json | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          net_worth?: number
+          snapshot_date?: string
+          total_assets?: number
+          total_liabilities?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_snapshots_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
           amount: number
