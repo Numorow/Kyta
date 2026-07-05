@@ -73,6 +73,57 @@ export type Database = {
           },
         ]
       }
+      budgets: {
+        Row: {
+          amount: number
+          category_id: string
+          created_at: string
+          household_id: string
+          id: string
+          is_active: boolean
+          period: string
+          rollover: boolean
+          start_date: string
+        }
+        Insert: {
+          amount: number
+          category_id: string
+          created_at?: string
+          household_id: string
+          id?: string
+          is_active?: boolean
+          period: string
+          rollover?: boolean
+          start_date?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          created_at?: string
+          household_id?: string
+          id?: string
+          is_active?: boolean
+          period?: string
+          rollover?: boolean
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           archived: boolean
@@ -434,6 +485,13 @@ export type Database = {
       }
     }
     Functions: {
+      budget_actuals: {
+        Args: { p_from: string; p_household: string; p_to: string }
+        Returns: {
+          category_id: string
+          spend: number
+        }[]
+      }
       create_household: { Args: { household_name: string }; Returns: string }
       is_household_member: { Args: { hid: string }; Returns: boolean }
       seed_default_categories: { Args: { hid: string }; Returns: undefined }
