@@ -9,6 +9,7 @@ import { TransactionsPage } from '@/features/transactions/TransactionsPage'
 import { ImportPage } from '@/features/import/ImportPage'
 import { BudgetsPage } from '@/features/budgets/BudgetsPage'
 import { CategoriesPage } from '@/features/categories/CategoriesPage'
+import { RecurringPage } from '@/features/recurring/RecurringPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
           { path: '/import', element: <ImportPage /> },
           { path: '/budgets', element: <BudgetsPage /> },
           { path: '/categories', element: <CategoriesPage /> },
+          { path: '/bills', element: <RecurringPage /> },
         ],
       },
     ],

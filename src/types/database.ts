@@ -339,6 +339,92 @@ export type Database = {
           },
         ]
       }
+      recurring_rules: {
+        Row: {
+          account_id: string | null
+          amount: number
+          anchor_date: string
+          auto_post: boolean
+          category_id: string | null
+          created_at: string
+          day_of_month: number | null
+          end_date: string | null
+          frequency: string
+          household_id: string
+          id: string
+          interval_count: number
+          is_active: boolean
+          name: string
+          next_due_date: string | null
+          type: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          anchor_date: string
+          auto_post?: boolean
+          category_id?: string | null
+          created_at?: string
+          day_of_month?: number | null
+          end_date?: string | null
+          frequency: string
+          household_id: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          name: string
+          next_due_date?: string | null
+          type: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          anchor_date?: string
+          auto_post?: boolean
+          category_id?: string | null
+          created_at?: string
+          day_of_month?: number | null
+          end_date?: string | null
+          frequency?: string
+          household_id?: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          name?: string
+          next_due_date?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_rules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "recurring_rules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_rules_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           account_id: string
@@ -428,6 +514,13 @@ export type Database = {
             columns: ["import_batch_id"]
             isOneToOne: false
             referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_recurring_rule_id_fkey"
+            columns: ["recurring_rule_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_rules"
             referencedColumns: ["id"]
           },
         ]
