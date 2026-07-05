@@ -1,9 +1,15 @@
 # Setup & deployment runbook
 
 The app is fully built and the Supabase project (`household-finance`, ref
-`dzxcrkoseqpjhwmthgyk`, region ap-southeast-2) already has all migrations and
+`dzxcrkoseqpjhwmthgyk`, region ap-southeast-2) has migrations 0001–0017 and the
 Edge Functions deployed. The steps below are the few things that must be done
 in the Supabase / Vercel dashboards (they can't be scripted safely from here).
+
+> **This phase (Goals & forecasting) adds migrations `0018_savings_goals.sql`
+> and `0019_realtime_goals.sql`, which are NOT yet applied.** Apply them and
+> regenerate types before the goals feature works against the live DB — see §7.
+> Forecast and Reports insights need no migration (pure client logic over
+> existing tables).
 
 ## 1. Supabase Auth — URL configuration (required)
 
@@ -58,6 +64,10 @@ $$);
 - Set env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (from `.env`).
 - The service-role key is **never** set on the frontend — it lives only in the
   Supabase Edge Function environment.
+- `vercel.json` (committed) handles SPA routing so deep links like `/goals` and
+  `/forecast` don't 404 on refresh, plus baseline security headers.
+- `package.json` pins `engines.node` to `22.x`; set Node 22 in Project Settings
+  → Build too so Vercel builds on the same major.
 
 ## 5. Backups
 
@@ -69,3 +79,31 @@ the couple's only copy of their financial data.
 Invites currently generate a shareable link you send yourself. To email them
 automatically, add a transactional-email provider (e.g. Resend) and extend the
 invite flow with a send step — deferred for MVP per the build brief.
+
+## 7. Apply this phase's migrations (Goals) + regenerate types
+
+The Goals feature needs two new migrations applied to the finance project.
+**Important:** target ref `dzxcrkoseqpjhwmthgyk` — do not run these against any
+other project. With the Supabase CLI:
+
+```bash
+supabase link --project-ref dzxcrkoseqpjhwmthgyk   # one-time, needs your access token
+supabase db push                                   # applies 0018_savings_goals + 0019_realtime_goals
+supabase gen types typescript --linked > src/types/database.ts   # replace the hand-added types
+```
+
+`src/types/database.ts` currently carries **hand-written** `goals`,
+`goal_contributions` and `goal_progress` types (marked with a NOTE) so the app
+builds before the migration is applied — the `gen types` step above replaces
+them with the real generated file. Commit the regenerated file.
+
+## 8. Verify household RLS isolation (recommended)
+
+Two ways to prove household A can't read household B, both through the real
+anon-key path (a superuser/pgTAP check would bypass RLS and prove nothing):
+
+- `npm run verify:rls` — the standalone script (households + members).
+- `npx vitest run src/lib/rls-isolation.test.ts` — the same flow plus the newer
+  tables (goals, goal_contributions, balance_snapshots, payslips). Both need two
+  confirmed test accounts with no household yet (see the file headers for the
+  env vars). They stay skipped in the default `npm test`.

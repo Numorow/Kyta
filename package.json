@@ -9,7 +9,11 @@
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify:rls": "node scripts/verify-rls-isolation.mjs",
     "preview": "vite preview"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
