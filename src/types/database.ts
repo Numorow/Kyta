@@ -627,6 +627,15 @@ export type Database = {
         }[]
       }
       create_household: { Args: { household_name: string }; Returns: string }
+      household_members_detail: {
+        Args: { hid: string }
+        Returns: {
+          user_id: string
+          role: string
+          display_name: string | null
+          email: string
+        }[]
+      }
       is_household_member: { Args: { hid: string }; Returns: boolean }
       seed_default_categories: { Args: { hid: string }; Returns: undefined }
     }

@@ -1,37 +1,37 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
-import { NAV_ITEMS } from '@/app/nav'
+import { Settings } from 'lucide-react'
+import { NAV_ITEMS, type NavItem } from '@/app/nav'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
 import { HouseholdGate, useHousehold } from '@/features/household/HouseholdContext'
 import { useRealtimeSync } from '@/features/realtime/useRealtimeSync'
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+const SETTINGS_ITEM: NavItem = { to: '/settings', label: 'Settings', icon: Settings }
+
+// Bottom-bar picks on mobile (Accounts + Reports stay reachable via dashboard
+// cards, so the bar doesn't get too crowded on a phone).
+const MOBILE_NAV: NavItem[] = [
+  ...NAV_ITEMS.filter((i) => ['/', '/transactions', '/budgets', '/bills'].includes(i.to)),
+  SETTINGS_ITEM,
+]
+
+function navLinkClass({ isActive }: { isActive: boolean }) {
+  return cn(
+    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+    'max-md:flex-col max-md:gap-1 max-md:px-2 max-md:py-2 max-md:text-[11px]',
+    isActive
+      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+      : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+  )
+}
+
+function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+  const Icon = item.icon
   return (
-    <>
-      {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={to === '/'}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              'max-md:flex-col max-md:gap-1 max-md:px-2 max-md:text-xs',
-              isActive
-                ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
-            )
-          }
-        >
-          <Icon className="size-5 shrink-0" />
-          {label}
-        </NavLink>
-      ))}
-    </>
+    <NavLink to={item.to} end={item.to === '/'} onClick={onNavigate} className={navLinkClass}>
+      <Icon className="size-5 shrink-0" />
+      {item.label}
+    </NavLink>
   )
 }
 
@@ -47,36 +47,22 @@ function Chrome() {
           <p className="text-lg font-semibold text-sidebar-foreground">{household.name}</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
-          <NavItems />
+          {NAV_ITEMS.map((item) => (
+            <NavRow key={item.to} item={item} />
+          ))}
         </nav>
-        <div className="flex items-center justify-between border-t pt-4">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => supabase.auth.signOut()}
-            className="text-muted-foreground"
-          >
-            <LogOut className="size-4" />
-            Sign out
-          </Button>
+        <div className="flex flex-col gap-1 border-t pt-2">
+          <NavRow item={SETTINGS_ITEM} />
+          <div className="px-2 pt-1">
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
       {/* Mobile top bar */}
       <header className="flex items-center justify-between border-b bg-sidebar px-4 py-3 md:hidden">
         <p className="font-semibold text-sidebar-foreground">{household.name}</p>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Sign out"
-            onClick={() => supabase.auth.signOut()}
-          >
-            <LogOut className="size-4" />
-          </Button>
-        </div>
+        <ThemeToggle />
       </header>
 
       <main className="flex-1 overflow-x-hidden pb-20 md:pb-0">
@@ -84,8 +70,10 @@ function Chrome() {
       </main>
 
       {/* Mobile bottom tab nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-10 flex items-stretch justify-around border-t bg-sidebar md:hidden">
-        <NavItems />
+      <nav className="fixed inset-x-0 bottom-0 z-10 flex items-stretch justify-around border-t bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden">
+        {MOBILE_NAV.map((item) => (
+          <NavRow key={item.to} item={item} />
+        ))}
       </nav>
     </div>
   )

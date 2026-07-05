@@ -12,6 +12,7 @@ import { CategoriesPage } from '@/features/categories/CategoriesPage'
 import { RecurringPage } from '@/features/recurring/RecurringPage'
 import { NetWorthPage } from '@/features/networth/NetWorthPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
+import { SettingsPage } from '@/features/settings/SettingsPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           { path: '/bills', element: <RecurringPage /> },
           { path: '/net-worth', element: <NetWorthPage /> },
           { path: '/reports', element: <ReportsPage /> },
+          { path: '/settings', element: <SettingsPage /> },
         ],
       },
     ],
