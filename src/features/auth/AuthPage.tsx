@@ -22,6 +22,7 @@ function PasswordAuthForm() {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<PasswordAuthValues>({ resolver: zodResolver(passwordAuthSchema) })
 
@@ -43,6 +44,25 @@ function PasswordAuthForm() {
     }
   }
 
+  // Send a recovery email that lands on /reset-password (must be an allow-listed
+  // Redirect URL in Supabase Auth). Reuses the email the user already typed.
+  const handleForgotPassword = async () => {
+    const email = getValues('email')
+    const parsed = magicLinkSchema.safeParse({ email })
+    if (!parsed.success) {
+      toast.error('Enter your email above first, then tap "Forgot password?".')
+      return
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+    toast.success('Check your email for a password reset link.')
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -62,6 +82,15 @@ function PasswordAuthForm() {
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
       </div>
+      {mode === 'sign-in' && (
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          className="-mt-1 self-end text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Forgot password?
+        </button>
+      )}
       <Button type="submit" disabled={isSubmitting}>
         {mode === 'sign-in' ? 'Sign in' : 'Create account'}
       </Button>

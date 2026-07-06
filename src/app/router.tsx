@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from '@/app/AppLayout'
 import { AuthPage } from '@/features/auth/AuthPage'
+import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 import { AcceptInvitePage } from '@/features/household/AcceptInvitePage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
@@ -19,6 +20,7 @@ import { PayslipsPage } from '@/features/payslips/PayslipsPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/accept-invite', element: <AcceptInvitePage /> },
   {
     element: <ProtectedRoute />,
