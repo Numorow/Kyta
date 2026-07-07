@@ -60,6 +60,12 @@ $$);
 
 ## 4. Vercel deployment
 
+**Status: LIVE.** Deployed at https://app-two-puce-99.vercel.app, and the Vercel
+project is connected to the GitHub repo (github.com/Numorow/Kyta) — pushing to
+`main` auto-deploys to production. `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
+are set in the project for Production + Preview. The steps below are the
+original one-time setup, kept for reference.
+
 - Import the repo, framework preset **Vite**.
 - Set env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (from `.env`).
 - The service-role key is **never** set on the frontend — it lives only in the
