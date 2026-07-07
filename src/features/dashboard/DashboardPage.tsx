@@ -15,6 +15,8 @@ import { useCategoryMap } from '@/features/categories/useCategories'
 import { TransactionFormDialog } from '@/features/transactions/TransactionFormDialog'
 import { useCashflowSummary, type CashflowPeriod } from '@/features/dashboard/useDashboard'
 import { CashflowForecastCard } from '@/features/forecast/CashflowForecastCard'
+import { MemberAvatar } from '@/features/household/MemberAvatar'
+import { useMemberLookup } from '@/features/household/useMembers'
 
 function SectionCard({
   title,
@@ -214,6 +216,8 @@ function RecentTransactionsCard() {
   const { data: rows } = useTransactions({})
   const recent = (rows ?? []).slice(0, 8)
   const [adding, setAdding] = useState(false)
+  const { byId, members } = useMemberLookup()
+  const twoPerson = members.length > 1
 
   return (
     <Card className="md:col-span-2">
@@ -242,6 +246,12 @@ function RecentTransactionsCard() {
                 <span className="hidden text-xs text-muted-foreground sm:block">
                   {t.accounts?.name}
                 </span>
+                {twoPerson && (
+                  <MemberAvatar
+                    member={t.created_by ? (byId.get(t.created_by) ?? null) : null}
+                    size="xs"
+                  />
+                )}
                 <span className={cn('font-mono tabular-nums', amountColorClass(t.amount))}>
                   {formatSignedMoney(t.amount)}
                 </span>

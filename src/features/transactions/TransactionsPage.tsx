@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { useAccounts } from '@/features/accounts/useAccounts'
 import { useCategories } from '@/features/categories/useCategories'
+import { useMemberLookup } from '@/features/household/useMembers'
 import { TransactionFormDialog } from '@/features/transactions/TransactionFormDialog'
 import { TransferFormDialog } from '@/features/transactions/TransferFormDialog'
 import { TransactionsGrid } from '@/features/transactions/TransactionsGrid'
@@ -37,16 +38,21 @@ export function TransactionsPage() {
   const [search, setSearch] = useState('')
   const [accountId, setAccountId] = useState<string>(ALL)
   const [typeFilter, setTypeFilter] = useState<string>(ALL)
+  const [createdBy, setCreatedBy] = useState<string>(ALL)
   const [uncategorisedOnly, setUncategorisedOnly] = useState(false)
+
+  const { members } = useMemberLookup()
+  const twoPerson = members.length > 1
 
   const filters: TransactionFilters = useMemo(
     () => ({
       search: search.trim() || undefined,
       accountId: accountId === ALL ? undefined : accountId,
       type: typeFilter === ALL ? undefined : (typeFilter as TransactionFilters['type']),
+      createdBy: createdBy === ALL ? undefined : createdBy,
       uncategorisedOnly: uncategorisedOnly || undefined,
     }),
-    [search, accountId, typeFilter, uncategorisedOnly],
+    [search, accountId, typeFilter, createdBy, uncategorisedOnly],
   )
 
   const { data: rows, isLoading } = useTransactions(filters)
@@ -141,6 +147,21 @@ export function TransactionsPage() {
             <SelectItem value="transfer">Transfer</SelectItem>
           </SelectContent>
         </Select>
+        {twoPerson && (
+          <Select value={createdBy} onValueChange={setCreatedBy}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Added by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Anyone</SelectItem>
+              {members.map((m) => (
+                <SelectItem key={m.userId} value={m.userId}>
+                  {m.isYou ? 'You' : m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Button
           variant={uncategorisedOnly ? 'default' : 'outline'}
           onClick={() => setUncategorisedOnly((v) => !v)}
@@ -173,6 +194,8 @@ export function TransactionsPage() {
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
           onUpdate={handleUpdate}
+          members={members}
+          showAdded={twoPerson}
         />
       )}
 

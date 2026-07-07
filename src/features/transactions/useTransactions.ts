@@ -17,6 +17,7 @@ export type TransactionFilters = {
   type?: 'income' | 'expense' | 'transfer'
   search?: string
   uncategorisedOnly?: boolean
+  createdBy?: string // filter by the member who added it (2Up)
   from?: string
   to?: string
 }
@@ -53,6 +54,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
       if (filters.accountId) query = query.eq('account_id', filters.accountId)
       if (filters.categoryId) query = query.eq('category_id', filters.categoryId)
       if (filters.type) query = query.eq('type', filters.type)
+      if (filters.createdBy) query = query.eq('created_by', filters.createdBy)
       if (filters.uncategorisedOnly) query = query.is('category_id', null)
       if (filters.from) query = query.gte('txn_date', filters.from)
       if (filters.to) query = query.lte('txn_date', filters.to)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, LogOut } from 'lucide-react'
@@ -12,21 +12,68 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/features/auth/AuthProvider'
 import { resetPasswordSchema, type ResetPasswordValues } from '@/features/auth/schemas'
 import { useHousehold } from '@/features/household/HouseholdContext'
 import { InviteSection } from '@/features/household/InviteSection'
+import { MemberAvatar } from '@/features/household/MemberAvatar'
+import { useMembers } from '@/features/household/useMembers'
 
-function MembersCard({ householdId }: { householdId: string }) {
-  const { user } = useAuth()
-  const { data: members } = useQuery({
-    queryKey: ['members', householdId],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('household_members_detail', { hid: householdId })
+function ProfileCard() {
+  const { data: members } = useMembers()
+  const queryClient = useQueryClient()
+  const you = (members ?? []).find((m) => m.isYou)
+  const youName = you?.name
+  const [name, setName] = useState('')
+
+  useEffect(() => {
+    if (youName) setName(youName)
+  }, [youName])
+
+  const save = useMutation({
+    mutationFn: async (newName: string) => {
+      const { error } = await supabase.rpc('set_my_display_name', { p_name: newName })
       if (error) throw error
-      return data
     },
+    onSuccess: () => {
+      // Refresh members everywhere attribution shows (grid, dashboard, reports).
+      queryClient.invalidateQueries({ queryKey: ['members'] })
+      toast.success('Name updated')
+    },
+    onError: (e) => toast.error((e as Error).message),
   })
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">Your name</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <MemberAvatar member={you} youAsYou={false} />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Kyle"
+            aria-label="Your display name"
+          />
+          <Button
+            variant="outline"
+            disabled={!you || name.trim() === (you?.name ?? '') || save.isPending}
+            onClick={() => save.mutate(name.trim())}
+          >
+            Save
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Shown on transactions, goals, and insights you add.
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function MembersCard() {
+  const { data: members } = useMembers()
 
   return (
     <Card>
@@ -35,11 +82,17 @@ function MembersCard({ householdId }: { householdId: string }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {(members ?? []).map((m) => (
-          <div key={m.user_id} className="flex items-center justify-between text-sm">
-            <span>
-              {m.email}
-              {m.user_id === user?.id && <span className="text-muted-foreground"> (you)</span>}
-            </span>
+          <div key={m.userId} className="flex items-center justify-between gap-2 text-sm">
+            <div className="flex min-w-0 items-center gap-2">
+              <MemberAvatar member={m} />
+              <div className="min-w-0">
+                <p className="truncate font-medium">
+                  {m.name}
+                  {m.isYou && <span className="font-normal text-muted-foreground"> (you)</span>}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+              </div>
+            </div>
             <Badge variant={m.role === 'owner' ? 'default' : 'secondary'} className="capitalize">
               {m.role}
             </Badge>
@@ -162,7 +215,9 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      <MembersCard householdId={membership.household_id} />
+      <ProfileCard />
+
+      <MembersCard />
 
       {membership.role === 'owner' && <InviteSection householdId={membership.household_id} />}
 

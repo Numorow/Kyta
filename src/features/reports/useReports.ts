@@ -7,6 +7,7 @@ import { todayIso } from '@/lib/money'
 export type CategorySpend = { category: string; spend: number }
 export type MonthlyCashflow = { month: string; income: number; expense: number; net: number }
 export type CategoryMonthSpend = { category: string; month: string; spend: number }
+export type PersonCashflow = { userId: string | null; income: number; expense: number; net: number }
 
 export type ReportData = {
   from: string
@@ -14,6 +15,7 @@ export type ReportData = {
   spendByCategory: CategorySpend[]
   monthly: MonthlyCashflow[]
   byCategoryMonth: CategoryMonthSpend[] // per-(category × month) expense, for insights
+  byPerson: PersonCashflow[] // income/expense/net per member who added it (2Up)
 }
 
 /**
@@ -32,7 +34,7 @@ export function useReports(months: number) {
     queryFn: async (): Promise<ReportData> => {
       const { data, error } = await supabase
         .from('transactions')
-        .select('txn_date, amount, type, categories(name)')
+        .select('txn_date, amount, type, created_by, categories(name)')
         .neq('type', 'transfer')
         .gte('txn_date', from)
         .lte('txn_date', to)
@@ -42,6 +44,7 @@ export function useReports(months: number) {
         txn_date: string
         amount: number
         type: string
+        created_by: string | null
         categories: { name: string } | null
       }[]
 
@@ -51,21 +54,27 @@ export function useReports(months: number) {
       const monthMap = new Map<string, { income: number; expense: number }>()
       // Per-(category × month) expense for insights (MoM trend, top movers).
       const catMonthMap = new Map<string, number>() // `${category}|${month}` → spend
+      // Income/expense per member who added the transaction (2Up).
+      const personMap = new Map<string | null, { income: number; expense: number }>()
 
       for (const r of rows) {
         const amt = Number(r.amount)
         const month = r.txn_date.slice(0, 7) // yyyy-MM
         const bucket = monthMap.get(month) ?? { income: 0, expense: 0 }
+        const pbucket = personMap.get(r.created_by) ?? { income: 0, expense: 0 }
         if (r.type === 'income') {
           bucket.income += amt
+          pbucket.income += amt
         } else if (r.type === 'expense') {
           bucket.expense += -amt
+          pbucket.expense += -amt
           const name = r.categories?.name ?? 'Uncategorised'
           spendMap.set(name, (spendMap.get(name) ?? 0) + -amt)
           const key = `${name}|${month}`
           catMonthMap.set(key, (catMonthMap.get(key) ?? 0) + -amt)
         }
         monthMap.set(month, bucket)
+        personMap.set(r.created_by, pbucket)
       }
 
       const spendByCategory = [...spendMap.entries()]
@@ -83,7 +92,14 @@ export function useReports(months: number) {
         return { category: key.slice(0, sep), month: key.slice(sep + 1), spend }
       })
 
-      return { from, to, spendByCategory, monthly, byCategoryMonth }
+      const byPerson = [...personMap.entries()].map(([userId, v]) => ({
+        userId,
+        income: v.income,
+        expense: v.expense,
+        net: v.income - v.expense,
+      }))
+
+      return { from, to, spendByCategory, monthly, byCategoryMonth, byPerson }
     },
   })
 }

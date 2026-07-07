@@ -830,6 +830,7 @@ export type Database = {
       }
       is_household_member: { Args: { hid: string }; Returns: boolean }
       seed_default_categories: { Args: { hid: string }; Returns: undefined }
+      set_my_display_name: { Args: { p_name: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

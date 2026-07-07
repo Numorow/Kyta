@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { formatDate, formatMoney, formatSignedMoney } from '@/lib/money'
+import { MemberAvatar } from '@/features/household/MemberAvatar'
+import { useMemberLookup } from '@/features/household/useMembers'
 import { GoalFormDialog } from '@/features/goals/GoalFormDialog'
 import { ContributionDialog } from '@/features/goals/ContributionDialog'
 import {
@@ -37,6 +39,8 @@ function ProgressBar({ pct }: { pct: number }) {
 function Contributions({ goalId }: { goalId: string }) {
   const { data: contributions, isLoading } = useContributions(goalId)
   const del = useDeleteContribution()
+  const { byId, members } = useMemberLookup()
+  const twoPerson = members.length > 1
 
   if (isLoading) return <p className="py-2 text-xs text-muted-foreground">Loading…</p>
   if (!contributions || contributions.length === 0) {
@@ -51,6 +55,12 @@ function Contributions({ goalId }: { goalId: string }) {
             {c.note && <span className="ml-2 text-muted-foreground">{c.note}</span>}
           </div>
           <div className="flex items-center gap-3">
+            {twoPerson && (
+              <MemberAvatar
+                member={c.created_by ? (byId.get(c.created_by) ?? null) : null}
+                size="xs"
+              />
+            )}
             <span className="text-xs text-muted-foreground">{formatDate(c.contrib_date)}</span>
             <button
               className="text-xs text-muted-foreground hover:text-destructive"

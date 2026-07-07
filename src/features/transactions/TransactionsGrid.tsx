@@ -4,6 +4,7 @@ import {
   getCoreRowModel,
   useReactTable,
   type ColumnDef,
+  type Row,
   type RowSelectionState,
 } from '@tanstack/react-table'
 import {
@@ -26,6 +27,8 @@ import { cn } from '@/lib/utils'
 import type { Category } from '@/features/categories/useCategories'
 import { EditableInput } from '@/features/transactions/EditableCell'
 import type { TransactionRow } from '@/features/transactions/useTransactions'
+import { MemberAvatar } from '@/features/household/MemberAvatar'
+import type { Member } from '@/features/household/useMembers'
 
 function Checkbox({
   checked,
@@ -58,12 +61,16 @@ export function TransactionsGrid({
   rowSelection,
   onRowSelectionChange,
   onUpdate,
+  members,
+  showAdded,
 }: {
   rows: TransactionRow[]
   categories: Category[]
   rowSelection: RowSelectionState
   onRowSelectionChange: (next: RowSelectionState) => void
   onUpdate: (id: string, patch: Partial<TransactionRow>) => void
+  members: Member[]
+  showAdded: boolean
 }) {
   const columns = useMemo<ColumnDef<TransactionRow>[]>(
     () => [
@@ -152,6 +159,24 @@ export function TransactionsGrid({
         ),
         size: 140,
       },
+      ...(showAdded
+        ? [
+            {
+              id: 'added_by',
+              header: 'By',
+              cell: ({ row }: { row: Row<TransactionRow> }) => {
+                const by = row.original.created_by
+                const m = by ? (members.find((x) => x.userId === by) ?? null) : null
+                return (
+                  <div className="px-2">
+                    <MemberAvatar member={m} size="xs" />
+                  </div>
+                )
+              },
+              size: 52,
+            } as ColumnDef<TransactionRow>,
+          ]
+        : []),
       {
         accessorKey: 'amount',
         header: () => <div className="text-right">Amount</div>,
@@ -199,7 +224,7 @@ export function TransactionsGrid({
         size: 130,
       },
     ],
-    [categories, onUpdate],
+    [categories, onUpdate, members, showAdded],
   )
 
   const table = useReactTable({

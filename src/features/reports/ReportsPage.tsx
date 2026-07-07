@@ -14,11 +14,13 @@ import {
 } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatMoney } from '@/lib/money'
+import { formatMoney, formatSignedMoney } from '@/lib/money'
 import { cn } from '@/lib/utils'
 import { exportCsv } from '@/lib/exportCsv'
-import { useReports } from '@/features/reports/useReports'
+import { useReports, type ReportData } from '@/features/reports/useReports'
 import { InsightsSection } from '@/features/reports/InsightsSection'
+import { MemberAvatar } from '@/features/household/MemberAvatar'
+import { useMemberLookup } from '@/features/household/useMembers'
 
 const CHART_COLORS = [
   'var(--color-chart-1)',
@@ -49,6 +51,48 @@ function monthLabel(m: string) {
   const [y, mo] = m.split('-').map(Number)
   return new Intl.DateTimeFormat('en-AU', { month: 'short', year: '2-digit' }).format(
     new Date(y, mo - 1, 1),
+  )
+}
+
+function ByPersonCard({ report }: { report: ReportData }) {
+  const { byId, members } = useMemberLookup()
+  // Only a shared household needs a per-person split.
+  if (members.length < 2) return null
+
+  const rows = report.byPerson
+    .map((p) => ({ ...p, member: p.userId ? (byId.get(p.userId) ?? null) : null }))
+    .sort((a, b) => b.net - a.net)
+  if (rows.length === 0) return null
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">By person</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {rows.map((p, i) => (
+          <div key={p.userId ?? `none-${i}`} className="flex items-center justify-between gap-3">
+            {p.member ? (
+              <MemberAvatar member={p.member} showName youAsYou={false} />
+            ) : (
+              <span className="text-sm text-muted-foreground">Unattributed</span>
+            )}
+            <div className="flex items-center gap-4 font-mono text-sm tabular-nums">
+              <span className="text-income">{formatMoney(p.income)}</span>
+              <span className="text-expense">{formatMoney(p.expense)}</span>
+              <span
+                className={cn('font-medium', p.net >= 0 ? 'text-income' : 'text-expense')}
+              >
+                {formatSignedMoney(p.net)}
+              </span>
+            </div>
+          </div>
+        ))}
+        <p className="border-t pt-2 text-right text-xs text-muted-foreground">
+          in · out · net (from what each of you added)
+        </p>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -235,6 +279,9 @@ export function ReportsPage() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          {/* By person (2Up) */}
+          {data && <ByPersonCard report={data} />}
 
           {/* Insights (extends Reports) */}
           {data && <InsightsSection report={data} months={months} />}
