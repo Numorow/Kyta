@@ -10,3 +10,14 @@ export const magicLinkSchema = z.object({
   email: z.string().trim().email('Enter a valid email address'),
 })
 export type MagicLinkValues = z.infer<typeof magicLinkSchema>
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: 'Passwords do not match',
+    path: ['confirm'],
+  })
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>

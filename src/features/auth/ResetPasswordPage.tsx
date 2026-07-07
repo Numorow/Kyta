@@ -1,40 +1,43 @@
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { resetPasswordSchema, type ResetPasswordValues } from '@/features/auth/schemas'
 import { supabase } from '@/lib/supabase'
 
-// Landing page for the password-recovery email link. The Supabase client
-// (detectSessionInUrl is on by default) parses the recovery token from the URL
-// on load and establishes a session, so by the time auth settles a valid link
-// yields a session and we can let the user set a new password via updateUser.
-const schema = z
-  .object({
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirm: z.string(),
-  })
-  .refine((v) => v.password === v.confirm, {
-    path: ['confirm'],
-    message: 'Passwords do not match',
-  })
-type FormValues = z.infer<typeof schema>
-
+/**
+ * Landing page for the password-recovery email link. The Supabase client
+ * (detectSessionInUrl is on by default) parses the recovery token from the URL
+ * on load and establishes a session, so once auth settles a valid link yields a
+ * session and we can let the user set a new password via updateUser. Also works
+ * for an already-signed-in user (acts as a change-password). Public route so the
+ * link renders before a normal session exists.
+ */
 export function ResetPasswordPage() {
   const { session, loading } = useAuth()
   const navigate = useNavigate()
+  const [urlError, setUrlError] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  } = useForm<ResetPasswordValues>({ resolver: zodResolver(resetPasswordSchema) })
 
-  const onSubmit = async (values: FormValues) => {
+  useEffect(() => {
+    // Supabase reports an expired/invalid link via the URL hash.
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const err = hash.get('error_description') ?? hash.get('error')
+    if (err) setUrlError(err.replace(/\+/g, ' '))
+  }, [])
+
+  const onSubmit = async (values: ResetPasswordValues) => {
     const { error } = await supabase.auth.updateUser({ password: values.password })
     if (error) {
       toast.error(error.message)
@@ -43,6 +46,8 @@ export function ResetPasswordPage() {
     toast.success('Password updated — you are signed in.')
     navigate('/', { replace: true })
   }
+
+  const invalid = !!urlError || (!loading && !session)
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-background p-4">
@@ -60,7 +65,17 @@ export function ResetPasswordPage() {
         <CardContent>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : session ? (
+          ) : invalid ? (
+            <div className="flex flex-col gap-3 text-sm">
+              {urlError && <p className="text-destructive">{urlError}</p>}
+              <p className="text-muted-foreground">
+                Request a fresh link from the sign-in screen.
+              </p>
+              <Button asChild variant="outline">
+                <Link to="/login">Back to sign in</Link>
+              </Button>
+            </div>
+          ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="new-password">New password</Label>
@@ -90,15 +105,6 @@ export function ResetPasswordPage() {
                 Update password
               </Button>
             </form>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">
-                Request a fresh link from the sign-in screen.
-              </p>
-              <Button asChild variant="outline">
-                <Link to="/login">Back to sign in</Link>
-              </Button>
-            </div>
           )}
         </CardContent>
       </Card>
