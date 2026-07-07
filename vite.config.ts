@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Household Finance',
-        short_name: 'Finance',
-        description: 'Shared household finance tracker',
+        name: '2Up',
+        short_name: '2Up',
+        description: 'Shared household finances for two',
         theme_color: '#1E3A8A',
         background_color: '#F8FAFC',
         display: 'standalone',

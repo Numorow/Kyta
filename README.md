@@ -1,6 +1,6 @@
-# Household Finance
+# 2Up
 
-Private, shared finance tracker for a two-person household — spending vs budget, income, upcoming bills, and net worth. Spec: [`FINANCE-TRACKER-BUILD-BRIEF.md`](../FINANCE-TRACKER-BUILD-BRIEF.md).
+Private, shared finance tracker for two — spending vs budget, income, upcoming bills, goals, cashflow forecast, and net worth. Spec: [`FINANCE-TRACKER-BUILD-BRIEF.md`](../FINANCE-TRACKER-BUILD-BRIEF.md).
 
 ## Stack
 

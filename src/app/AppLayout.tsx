@@ -44,6 +44,7 @@ function Chrome() {
       {/* Desktop sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
         <div className="mb-6 px-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">2Up</p>
           <p className="text-lg font-semibold text-sidebar-foreground">{household.name}</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
@@ -61,7 +62,10 @@ function Chrome() {
 
       {/* Mobile top bar */}
       <header className="flex items-center justify-between border-b bg-sidebar px-4 py-3 md:hidden">
-        <p className="font-semibold text-sidebar-foreground">{household.name}</p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">2Up</span>
+          <p className="font-semibold text-sidebar-foreground">{household.name}</p>
+        </div>
         <ThemeToggle />
       </header>
 

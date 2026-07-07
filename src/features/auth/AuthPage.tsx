@@ -160,8 +160,8 @@ export function AuthPage() {
     <div className="flex min-h-svh items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Household Finance</CardTitle>
-          <CardDescription>Sign in to your shared household.</CardDescription>
+          <CardTitle>2Up</CardTitle>
+          <CardDescription>Shared finances for two — sign in to your household.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="password">
